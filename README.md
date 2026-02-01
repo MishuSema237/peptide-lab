@@ -1,36 +1,143 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# PeptideLab - E-Commerce Platform
 
-## Getting Started
+**Precision Peptides for Advanced Research**
 
-First, run the development server:
+A modern, full-stack e-commerce platform for research-grade peptides built with Next.js, TypeScript, and TailwindCSS.
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+## 🚀 Tech Stack
+
+- **Frontend**: Next.js 14 (App Router), TypeScript, TailwindCSS
+- **Authentication**: Auth0
+- **Database**: MongoDB Atlas (Mongoose ODM)
+- **Image Storage**: Supabase Storage
+- **Email**: Nodemailer
+- **State Management**: Zustand (cart), React Context
+- **Forms**: React Hook Form + Zod validation
+- **Hosting**: Vercel
+
+## 🎨 Brand Identity
+
+- **Primary Color**: Deep Ocean Blue (#0A4D7D)
+- **Secondary Color**: Bright Cyan (#00B4D8)
+- **Accent Color**: Electric Teal (#48CAE4)
+- **Fonts**: Inter (body), Outfit (headings)
+
+## 📦 Installation
+
+1. Clone the repository
+2. Install dependencies:
+   ```bash
+   npm install
+   ```
+
+3. Copy `env.example.txt` and create `.env.local` with your credentials:
+   - MongoDB Atlas connection string
+   - Auth0 credentials
+   - Supabase URL and keys
+   - SMTP email configuration
+
+4. Run the development server:
+   ```bash
+   npm run dev
+   ```
+
+5. Open [http://localhost:3000](http://localhost:3000)
+
+## 🏗️ Project Structure
+
+```
+peptides/
+├── app/                    # Next.js App Router
+│   ├── api/               # API routes
+│   ├── (auth)/           # Auth group routes
+│   ├── (shop)/           # Public shop routes
+│   └── admin/            # Admin dashboard
+├── components/            # React components
+│   ├── ui/               # Base UI components
+│   ├── layout/           # Layout components
+│   ├── shop/             # Shop-specific components
+│   └── admin/            # Admin components
+├── lib/                   # Utilities and configs
+│   ├── db/               # Database connection
+│   ├── email/            # Email templates
+│   └── utils/            # Helper functions
+├── models/                # MongoDB models
+├── types/                 # TypeScript types
+└── public/                # Static assets
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+## ✨ Features
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+### Customer Features
+- Browse products with filtering and search
+- Shopping cart with persistence
+- 3-stage checkout process
+- User account dashboard
+- Order tracking
+- Email notifications
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+### Admin Features
+- Product management (CRUD with images)
+- Order management with status updates
+- Payment method configuration
+- User management
+- Contact inquiry management
+- Direct email replies to customers
+- Analytics dashboard
 
-## Learn More
+### Payment System
+- Manual payment workflow
+- Admin-configurable payment methods
+- Payment details sent via email
+- Order status tracking (Pending → Paid → Shipped → Delivered)
 
-To learn more about Next.js, take a look at the following resources:
+## 📧 Email Templates
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+Professional email templates for:
+- Welcome/registration
+- Order confirmation (user & admin)
+- Payment details
+- Order status updates
+- Contact form responses
+- Admin direct replies
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+## 🔐 Authentication
 
-## Deploy on Vercel
+Auth0 integration with:
+- Universal Login
+- Email verification
+- Role-based access control (Admin, Customer)
+- Protected routes
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+## 🛠️ Development
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+```bash
+# Run development server
+npm run dev
+
+# Build for production
+npm run build
+
+# Start production server
+npm start
+
+# Lint code
+npm run lint
+```
+
+## 📝 Environment Variables
+
+See `env.example.txt` for all required environment variables.
+
+## 🚢 Deployment
+
+This project is configured for deployment on Vercel:
+
+1. Push code to GitHub
+2. Import project in Vercel
+3. Add environment variables
+4. Deploy
+
+## 📄 License
+
+© 2026 PeptideLab. All rights reserved.

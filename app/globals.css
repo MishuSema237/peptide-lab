@@ -1,26 +1,170 @@
 @import "tailwindcss";
 
-:root {
-  --background: #ffffff;
-  --foreground: #171717;
+@theme {
+  --font-sans: 'Montserrat', sans-serif;
+  --font-heading: 'EB Garamond', serif;
+
+  /* PeptideLab Brand Colors */
+  --color-primary: #0a4d7d;
+  --color-primary-50: #e6f2f8;
+  --color-primary-100: #cce5f1;
+  --color-primary-200: #99cbe3;
+  --color-primary-300: #66b1d5;
+  --color-primary-400: #3397c7;
+  --color-primary-500: #0a4d7d;
+  --color-primary-600: #083e64;
+  --color-primary-700: #062e4b;
+  --color-primary-800: #041f32;
+  --color-primary-900: #020f19;
+
+  --color-secondary: #00b4d8;
+  --color-secondary-50: #e6f7fb;
+  --color-secondary-100: #cceff7;
+  --color-secondary-200: #99dfef;
+  --color-secondary-300: #66cfe7;
+  --color-secondary-400: #33bfdf;
+  --color-secondary-500: #00b4d8;
+  --color-secondary-600: #0090ad;
+  --color-secondary-700: #006c82;
+  --color-secondary-800: #004856;
+  --color-secondary-900: #00242b;
+
+  --color-accent: #48cae4;
+  --color-accent-50: #ebf8fb;
+  --color-accent-100: #d7f1f7;
+  --color-accent-200: #afe3ef;
+  --color-accent-300: #87d5e7;
+  --color-accent-400: #5fc7df;
+  --color-accent-500: #48cae4;
+  --color-accent-600: #3aa2b6;
+  --color-accent-700: #2b7989;
+  --color-accent-800: #1d515b;
+  --color-accent-900: #0e282e;
+
+  --color-dark: #023047;
+  --color-dark-50: #e6eaec;
+  --color-dark-100: #ccd5d9;
+  --color-dark-200: #99abb3;
+  --color-dark-300: #66818d;
+  --color-dark-400: #335767;
+  --color-dark-500: #023047;
+  --color-dark-600: #022639;
+  --color-dark-700: #011d2b;
+  --color-dark-800: #01131c;
+  --color-dark-900: #000a0e;
+
+  --color-success: #10b981;
+  --color-warning: #f59e0b;
+  --color-error: #ef4444;
+
+  /* Animations */
+  @keyframes fade-in {
+    from {
+      opacity: 0;
+    }
+
+    to {
+      opacity: 1;
+    }
+  }
+
+  @keyframes slide-up {
+    from {
+      transform: translateY(20px);
+      opacity: 0;
+    }
+
+    to {
+      transform: translateY(0);
+      opacity: 1;
+    }
+  }
+
+  @keyframes slide-down {
+    from {
+      transform: translateY(-20px);
+      opacity: 0;
+    }
+
+    to {
+      transform: translateY(0);
+      opacity: 1;
+    }
+  }
+
+  --animate-fade-in: fade-in 0.5s ease-in-out;
+  --animate-slide-up: slide-up 0.4s ease-out;
+  --animate-slide-down: slide-down 0.4s ease-out;
 }
 
-@theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
-}
+/* Custom Utilities */
+@layer utilities {
+  .container {
+    @apply max-w-7xl mx-auto px-4 sm:px-6 lg:px-8;
+  }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
+  .btn {
+    @apply px-6 py-3 rounded-lg font-medium transition-all duration-300 ease-in-out;
+  }
+
+  .btn-primary {
+    @apply bg-primary text-white hover:bg-primary-600 active:scale-95 shadow-md;
+  }
+
+  .btn-secondary {
+    @apply bg-secondary text-white hover:bg-secondary-600 active:scale-95 shadow-md;
+  }
+
+  .btn-accent {
+    @apply bg-accent text-dark hover:bg-accent-600 active:scale-95 shadow-md;
+  }
+
+  .card {
+    @apply bg-white rounded-lg shadow-md hover:shadow-lg transition-shadow duration-300;
   }
 }
 
-body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+/* Base Styles */
+@layer base {
+  body {
+    @apply font-sans text-dark bg-white antialiased;
+  }
+
+  h1,
+  h2,
+  h3,
+  h4,
+  h5,
+  h6 {
+    @apply font-heading font-normal leading-tight;
+  }
+}
+
+/* Heading Typography Defaults */
+h1,
+h2,
+h3,
+h4,
+h5,
+h6 {
+  font-family: 'EB Garamond', serif;
+  font-weight: 400;
+}
+
+/* Smooth scrolling */
+html {
+  scroll-behavior: smooth;
+}
+
+/* Custom scrollbar */
+::-webkit-scrollbar {
+  width: 10px;
+}
+
+::-webkit-scrollbar-track {
+  background: #f1f1f1;
+}
+
+::-webkit-scrollbar-thumb {
+  @apply bg-primary rounded-full hover:bg-secondary transition-colors;
 }
