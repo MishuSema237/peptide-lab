@@ -2,14 +2,15 @@ import { NextResponse } from 'next/server';
 import connectDB from '@/lib/db/mongodb';
 import Category from '@/models/Category';
 
-export async function PUT(request: Request, { params }: { params: { id: string } }) {
+export async function PUT(request: Request, { params }: { params: Promise<{ id: string }> }) {
     try {
+        const { id } = await params;
         const { name, description } = await request.json();
         const slug = name.toLowerCase().replace(/ /g, '-').replace(/[^\w-]+/g, '');
 
         await connectDB();
         const category = await Category.findByIdAndUpdate(
-            params.id,
+            id,
             { name, slug, description },
             { new: true }
         );
@@ -21,10 +22,11 @@ export async function PUT(request: Request, { params }: { params: { id: string }
     }
 }
 
-export async function DELETE(request: Request, { params }: { params: { id: string } }) {
+export async function DELETE(request: Request, { params }: { params: Promise<{ id: string }> }) {
     try {
+        const { id } = await params;
         await connectDB();
-        const category = await Category.findByIdAndDelete(params.id);
+        const category = await Category.findByIdAndDelete(id);
         if (!category) return NextResponse.json({ message: 'Category not found' }, { status: 404 });
         return NextResponse.json({ message: 'Category deleted' });
     } catch (error) {

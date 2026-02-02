@@ -2,12 +2,6 @@ import { NextRequest, NextResponse } from 'next/server';
 import { supabaseAdmin } from '@/lib/supabase';
 import { isAdmin } from '@/lib/auth';
 
-export const config = {
-    api: {
-        bodyParser: false,
-    },
-};
-
 export async function POST(req: NextRequest) {
     try {
         // 1. Check Authentication
