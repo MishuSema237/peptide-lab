@@ -1,23 +1,49 @@
+'use client';
+
+import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
 import Button from '@/components/ui/Button';
-import connectDB from '@/lib/db/mongodb';
-import Product from '@/models/Product';
-import Testimonial from '@/models/Testimonial';
 import ProductCard from '@/components/ui/Card';
 
-async function getHomeData() {
-  await connectDB();
-  const products = await Product.find({}).sort({ createdAt: -1 }).limit(3);
-  const testimonials = await Testimonial.find({ active: true }).sort({ createdAt: -1 }).limit(6);
-  return {
-    products: JSON.parse(JSON.stringify(products)),
-    testimonials: JSON.parse(JSON.stringify(testimonials)),
-  };
-}
+export default function Home() {
+  const [products, setProducts] = useState<any[]>([]);
+  const [testimonials, setTestimonials] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
 
-export default async function Home() {
-  const { products, testimonials } = await getHomeData();
+  useEffect(() => {
+    const fetchHomeData = async () => {
+      try {
+        const [productsRes, testimonialsRes] = await Promise.all([
+          fetch('/api/products'),
+          fetch('/api/testimonials')
+        ]);
+        
+        const productsData = await productsRes.json();
+        const testimonialsData = await testimonialsRes.json();
+        
+        setProducts(productsData.success ? productsData.data.slice(0, 3) : []);
+        setTestimonials(testimonialsData.slice(0, 6));
+      } catch (error) {
+        console.error('Error fetching home data:', error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchHomeData();
+  }, []);
+
+  if (loading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto mb-4"></div>
+          <p className="text-gray-600">Loading...</p>
+        </div>
+      </div>
+    );
+  }
   const partnerLogos = [
     { name: 'WebMD', src: '/images/partner-logos/WebMD_logo-150x35.png' },
     { name: 'Bachem', src: '/images/partner-logos/bachem_logo_blue-1-150x31.png' },
