@@ -1,15 +1,35 @@
+'use client';
+
+import { useState, useEffect } from 'react';
 import Link from 'next/link';
-import connectDB from '@/lib/db/mongodb';
-import ContactInquiry from '@/models/ContactInquiry';
 
-async function getInquiries() {
-    await connectDB();
-    const inquiries = await ContactInquiry.find({}).sort({ createdAt: -1 });
-    return JSON.parse(JSON.stringify(inquiries));
-}
+export default function AdminInquiriesPage() {
+    const [inquiries, setInquiries] = useState<any[]>([]);
+    const [loading, setLoading] = useState(true);
 
-export default async function AdminInquiriesPage() {
-    const inquiries = await getInquiries();
+    useEffect(() => {
+        const fetchInquiries = async () => {
+            try {
+                const res = await fetch('/api/inquiries');
+                const data = await res.json();
+                setInquiries(data);
+            } catch (error) {
+                console.error('Error fetching inquiries:', error);
+            } finally {
+                setLoading(false);
+            }
+        };
+        fetchInquiries();
+    }, []);
+
+    if (loading) {
+        return (
+            <div>
+                <h1 className="text-2xl font-bold text-dark mb-6">Contact Inquiries</h1>
+                <div className="text-center py-8">Loading...</div>
+            </div>
+        );
+    }
 
     return (
         <div>
