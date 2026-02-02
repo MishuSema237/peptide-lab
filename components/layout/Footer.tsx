@@ -116,7 +116,7 @@ export default function Footer() {
                         <p className="text-gray-300 text-sm mb-4">
                             Be the first to know about new collections, exclusive offers, and the latest in peptide science.
                         </p>
-                        <form onSubmit={handleNewsletterSubmit} className="flex gap-2">
+                        <form onSubmit={handleNewsletterSubmit} className="flex md:flex-row flex-col gap-2">
                             <input
                                 type="email"
                                 value={email}
