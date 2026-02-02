@@ -1,28 +1,40 @@
-import { notFound } from 'next/navigation';
-import connectDB from '@/lib/db/mongodb';
-import Order from '@/models/Order';
+'use client';
+
+import { useState, useEffect } from 'react';
+import { useParams } from 'next/navigation';
 import Image from 'next/image';
 import Button from '@/components/ui/Button';
 
 import OrderControls from '../components/OrderControls';
 
-async function getOrder(id: string) {
-    try {
-        await connectDB();
-        const order = await Order.findById(id);
-        if (!order) return null;
-        return JSON.parse(JSON.stringify(order));
-    } catch (error) {
-        return null;
-    }
-}
+export default function AdminOrderDetailPage() {
+    const [order, setOrder] = useState<any>(null);
+    const [loading, setLoading] = useState(true);
+    const params = useParams();
 
-export default async function AdminOrderDetailPage({ params }: { params: Promise<{ id: string }> }) {
-    const { id } = await params;
-    const order = await getOrder(id);
+    useEffect(() => {
+        const fetchOrder = async () => {
+            try {
+                const res = await fetch(`/api/orders/${params.id}`);
+                const data = await res.json();
+                setOrder(data.success ? data.data : null);
+            } catch (error) {
+                console.error('Error fetching order:', error);
+            } finally {
+                setLoading(false);
+            }
+        };
+        if (params.id) {
+            fetchOrder();
+        }
+    }, [params.id]);
+
+    if (loading) {
+        return <div className="text-center py-8">Loading...</div>;
+    }
 
     if (!order) {
-        notFound();
+        return <div className="text-center py-8">Order not found.</div>;
     }
 
     return (

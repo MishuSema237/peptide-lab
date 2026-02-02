@@ -1,16 +1,41 @@
+'use client';
+
+import { useState, useEffect } from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
-import connectDB from '@/lib/db/mongodb';
-import Product from '@/models/Product';
 
-async function getProducts() {
-    await connectDB();
-    const products = await Product.find({}).sort({ createdAt: -1 });
-    return JSON.parse(JSON.stringify(products));
-}
+export default function AdminProductsPage() {
+    const [products, setProducts] = useState<any[]>([]);
+    const [loading, setLoading] = useState(true);
 
-export default async function AdminProductsPage() {
-    const products = await getProducts();
+    useEffect(() => {
+        const fetchProducts = async () => {
+            try {
+                const res = await fetch('/api/products');
+                const data = await res.json();
+                setProducts(data.success ? data.data : []);
+            } catch (error) {
+                console.error('Error fetching products:', error);
+            } finally {
+                setLoading(false);
+            }
+        };
+        fetchProducts();
+    }, []);
+
+    if (loading) {
+        return (
+            <div>
+                <div className="flex justify-between items-center mb-6">
+                    <h1 className="text-2xl font-bold text-dark">Products</h1>
+                    <Link href="/admin/products/new" className="px-4 py-2 bg-primary text-white rounded-lg hover:bg-primary-600 transition-colors">
+                        Add New Product
+                    </Link>
+                </div>
+                <div className="text-center py-8">Loading...</div>
+            </div>
+        );
+    }
 
     return (
         <div>

@@ -3,6 +3,17 @@ import connectDB from '@/lib/db/mongodb';
 import Order from '@/models/Order';
 import { sendEmail, emailTemplates } from '@/lib/email/nodemailer';
 
+export async function GET() {
+    try {
+        await connectDB();
+        const orders = await Order.find({}).sort({ createdAt: -1 });
+        return NextResponse.json(orders);
+    } catch (error) {
+        console.error('Error fetching orders:', error);
+        return NextResponse.json({ error: 'Failed to fetch orders' }, { status: 500 });
+    }
+}
+
 export async function POST(req: NextRequest) {
     try {
         await connectDB();

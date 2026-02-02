@@ -1,15 +1,35 @@
+'use client';
+
+import { useState, useEffect } from 'react';
 import Link from 'next/link';
-import connectDB from '@/lib/db/mongodb';
-import Order from '@/models/Order';
 
-async function getOrders() {
-    await connectDB();
-    const orders = await Order.find({}).sort({ createdAt: -1 });
-    return JSON.parse(JSON.stringify(orders));
-}
+export default function AdminOrdersPage() {
+    const [orders, setOrders] = useState<any[]>([]);
+    const [loading, setLoading] = useState(true);
 
-export default async function AdminOrdersPage() {
-    const orders = await getOrders();
+    useEffect(() => {
+        const fetchOrders = async () => {
+            try {
+                const res = await fetch('/api/orders');
+                const data = await res.json();
+                setOrders(data);
+            } catch (error) {
+                console.error('Error fetching orders:', error);
+            } finally {
+                setLoading(false);
+            }
+        };
+        fetchOrders();
+    }, []);
+
+    if (loading) {
+        return (
+            <div>
+                <h1 className="text-2xl font-bold text-dark mb-6">Orders</h1>
+                <div className="text-center py-8">Loading...</div>
+            </div>
+        );
+    }
 
     return (
         <div>

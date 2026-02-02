@@ -1,25 +1,37 @@
-import { notFound } from 'next/navigation';
-import connectDB from '@/lib/db/mongodb';
-import ContactInquiry from '@/models/ContactInquiry';
+'use client';
+
+import { useState, useEffect } from 'react';
+import { useParams } from 'next/navigation';
 import Button from '@/components/ui/Button';
 
-async function getInquiry(id: string) {
-    try {
-        await connectDB();
-        const inquiry = await ContactInquiry.findById(id);
-        if (!inquiry) return null;
-        return JSON.parse(JSON.stringify(inquiry));
-    } catch (error) {
-        return null;
-    }
-}
+export default function InquiryDetailPage() {
+    const [inquiry, setInquiry] = useState<any>(null);
+    const [loading, setLoading] = useState(true);
+    const params = useParams();
 
-export default async function AdminInquiryDetailPage({ params }: { params: Promise<{ id: string }> }) {
-    const { id } = await params;
-    const inquiry = await getInquiry(id);
+    useEffect(() => {
+        const fetchInquiry = async () => {
+            try {
+                const res = await fetch(`/api/inquiries/${params.id}`);
+                const data = await res.json();
+                setInquiry(data);
+            } catch (error) {
+                console.error('Error fetching inquiry:', error);
+            } finally {
+                setLoading(false);
+            }
+        };
+        if (params.id) {
+            fetchInquiry();
+        }
+    }, [params.id]);
+
+    if (loading) {
+        return <div className="text-center py-8">Loading...</div>;
+    }
 
     if (!inquiry) {
-        notFound();
+        return <div className="text-center py-8">Inquiry not found.</div>;
     }
 
     return (
