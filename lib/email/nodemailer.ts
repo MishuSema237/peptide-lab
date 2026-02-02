@@ -2,20 +2,20 @@ import nodemailer from 'nodemailer';
 
 // Create reusable transporter
 const transporter = nodemailer.createTransport({
-    host: process.env.SMTP_HOST,
-    port: parseInt(process.env.SMTP_PORT || '587'),
-    secure: false, // true for 465, false for other ports
-    auth: {
-        user: process.env.SMTP_USER,
-        pass: process.env.SMTP_PASSWORD,
-    },
+  host: process.env.SMTP_HOST,
+  port: parseInt(process.env.SMTP_PORT || '587'),
+  secure: false, // true for 465, false for other ports
+  auth: {
+    user: process.env.SMTP_USER,
+    pass: process.env.SMTP_PASSWORD,
+  },
 });
 
 /**
  * Base email template
  */
 function getEmailTemplate(content: string): string {
-    return `
+  return `
     <!DOCTYPE html>
     <html lang="en">
     <head>
@@ -105,83 +105,89 @@ function getEmailTemplate(content: string): string {
  * Send email
  */
 export async function sendEmail({
-    to,
-    subject,
-    html,
+  to,
+  subject,
+  html,
 }: {
-    to: string;
-    subject: string;
-    html: string;
+  to: string;
+  subject: string;
+  html: string;
 }) {
-    try {
-        const info = await transporter.sendMail({
-            from: `"PeptideLab" <${process.env.SMTP_FROM}>`,
-            to,
-            subject,
-            html: getEmailTemplate(html),
-        });
+  try {
+    const info = await transporter.sendMail({
+      from: `"PeptideLab" <${process.env.SMTP_FROM}>`,
+      to,
+      subject,
+      html: getEmailTemplate(html),
+    });
 
-        console.log('✅ Email sent:', info.messageId);
-        return { success: true, messageId: info.messageId };
-    } catch (error) {
-        console.error('❌ Email error:', error);
-        throw error;
-    }
+    console.log('✅ Email sent:', info.messageId);
+    return { success: true, messageId: info.messageId };
+  } catch (error) {
+    console.error('❌ Email error:', error);
+    throw error;
+  }
 }
 
 /**
  * Email Templates
  */
 export const emailTemplates = {
-    // Welcome email
-    welcome: (name: string) => ({
-        subject: 'Welcome to PeptideLab!',
-        html: `
-      <h2>Welcome, ${name}!</h2>
-      <p>Thank you for creating an account with PeptideLab. We're excited to have you join our community of researchers and health innovators.</p>
-      <p>At PeptideLab, we deliver premium-grade peptide formulations backed by rigorous testing and research.</p>
-      <a href="${process.env.AUTH0_BASE_URL}/shop" class="button">Start Shopping</a>
-      <p>If you have any questions, our support team is here to help.</p>
-    `,
-    }),
+  // Order confirmation (User)
+  orderConfirmation: (orderNumber: string, items: any[], total: number) => {
+    const subtotal = items.reduce((sum, item) => sum + (item.price * item.quantity), 0);
+    const shipping = total - subtotal;
 
-    // Order confirmation (User)
-    orderConfirmation: (orderNumber: string, items: any[], total: number) => ({
-        subject: `Order Confirmation #${orderNumber}`,
-        html: `
-      <h2>Thank You for Your Order!</h2>
-      <p>Your order <strong>#${orderNumber}</strong> has been received and is being processed.</p>
-      <h3>Order Details:</h3>
-      <ul>
-        ${items.map((item) => `<li>${item.name} x ${item.quantity} - $${item.price}</li>`).join('')}
-      </ul>
-      <p><strong>Total: $${total.toFixed(2)}</strong></p>
-      <h3>What's Next?</h3>
-      <p>You will receive an email with payment details shortly. Once payment is confirmed, we'll prepare your order for shipment.</p>
-      <a href="${process.env.AUTH0_BASE_URL}/account/orders" class="button">View Order Status</a>
-    `,
-    }),
+    return {
+      subject: `Order Confirmation #${orderNumber}`,
+      html: `
+        <h2>Thank You for Your Order!</h2>
+        <p>Your order <strong>#${orderNumber}</strong> has been received and is being processed.</p>
+        <h3>Order Details:</h3>
+        <ul>
+          ${items.map((item) => `<li>${item.name} x ${item.quantity} - $${item.price.toFixed(2)}</li>`).join('')}
+        </ul>
+        <div style="margin-top: 20px; border-top: 1px solid #ddd; padding-top: 10px;">
+          <p style="margin: 5px 0;">Subtotal: $${subtotal.toFixed(2)}</p>
+          <p style="margin: 5px 0;">Shipping: $${shipping.toFixed(2)}</p>
+          <p style="font-size: 18px; font-weight: bold; margin-top: 10px;">Total: $${total.toFixed(2)}</p>
+        </div>
+        <h3>What's Next?</h3>
+        <p>You will receive payment details shortly. Once payment is confirmed, we'll prepare your order for shipment.</p>
+        <a href="${process.env.NEXT_PUBLIC_APP_URL}/track-order" class="button">Track Your Order</a>
+      `,
+    };
+  },
 
-    // Order confirmation (Admin)
-    orderNotificationAdmin: (orderNumber: string, customerEmail: string, items: any[], total: number) => ({
-        subject: `New Order #${orderNumber}`,
-        html: `
-      <h2>New Order Received</h2>
-      <p><strong>Order Number:</strong> #${orderNumber}</p>
-      <p><strong>Customer:</strong> ${customerEmail}</p>
-      <h3>Items:</h3>
-      <ul>
-        ${items.map((item) => `<li>${item.name} x ${item.quantity} - $${item.price}</li>`).join('')}
-      </ul>
-      <p><strong>Total: $${total.toFixed(2)}</strong></p>
-      <a href="${process.env.AUTH0_BASE_URL}/admin/orders/${orderNumber}" class="button">View in Dashboard</a>
-    `,
-    }),
+  // Order confirmation (Admin)
+  orderNotificationAdmin: (orderNumber: string, customerEmail: string, items: any[], total: number) => {
+    const subtotal = items.reduce((sum, item) => sum + (item.price * item.quantity), 0);
+    const shipping = total - subtotal;
 
-    // Payment details
-    paymentDetails: (orderNumber: string, paymentMethod: string, paymentInstructions: string) => ({
-        subject: `Payment Details for Order #${orderNumber}`,
-        html: `
+    return {
+      subject: `New Order #${orderNumber}`,
+      html: `
+        <h2>New Order Received</h2>
+        <p><strong>Order Number:</strong> #${orderNumber}</p>
+        <p><strong>Customer:</strong> ${customerEmail}</p>
+        <h3>Items:</h3>
+        <ul>
+          ${items.map((item) => `<li>${item.name} x ${item.quantity} - $${item.price.toFixed(2)}</li>`).join('')}
+        </ul>
+        <div style="margin-top: 20px; border-top: 1px solid #ddd; padding-top: 10px;">
+          <p style="margin: 5px 0;">Subtotal: $${subtotal.toFixed(2)}</p>
+          <p style="margin: 5px 0;">Shipping: $${shipping.toFixed(2)}</p>
+          <p style="font-size: 18px; font-weight: bold; margin-top: 10px;">Total: $${total.toFixed(2)}</p>
+        </div>
+        <a href="${process.env.NEXT_PUBLIC_APP_URL}/admin/orders" class="button">View in Dashboard</a>
+      `,
+    };
+  },
+
+  // Payment details
+  paymentDetails: (orderNumber: string, paymentMethod: string, paymentInstructions: string) => ({
+    subject: `Payment Details for Order #${orderNumber}`,
+    html: `
       <h2>Payment Instructions</h2>
       <p>Thank you for your order <strong>#${orderNumber}</strong>.</p>
       <p>Please complete your payment using the following method:</p>
@@ -192,23 +198,36 @@ export const emailTemplates = {
       <p><strong>Important:</strong> Please include your order number <strong>#${orderNumber}</strong> in the payment reference.</p>
       <p>Once payment is received, we'll confirm and prepare your order for shipment.</p>
     `,
-    }),
+  }),
 
-    // Order status update
-    orderStatusUpdate: (orderNumber: string, status: string, message: string) => ({
-        subject: `Order #${orderNumber} - ${status}`,
-        html: `
+  // Order status update
+  orderStatusUpdate: (orderNumber: string, status: string, message: string) => ({
+    subject: `Order #${orderNumber} - ${status}`,
+    html: `
       <h2>Order Status Update</h2>
       <p>Your order <strong>#${orderNumber}</strong> status has been updated to: <strong>${status}</strong></p>
       <p>${message}</p>
-      <a href="${process.env.AUTH0_BASE_URL}/account/orders" class="button">View Order</a>
+      <a href="${process.env.NEXT_PUBLIC_APP_URL}/track-order" class="button">Track Your Order</a>
     `,
-    }),
+  }),
 
-    // Contact form response
-    contactResponse: (name: string, message: string) => ({
-        subject: 'Response to Your Inquiry',
-        html: `
+  // Custom reply
+  customReply: (orderNumber: string, message: string) => ({
+    subject: `Re: Order #${orderNumber} Inquiry`,
+    html: `
+      <h2>Hello,</h2>
+      <p>This is a response regarding your order <strong>#${orderNumber}</strong>:</p>
+      <div style="background-color: #f8f9fa; padding: 20px; border-radius: 8px; margin: 20px 0; white-space: pre-wrap;">
+        ${message}
+      </div>
+      <p>Best regards,<br>The PeptideLab Team</p>
+    `,
+  }),
+
+  // Contact form response
+  contactResponse: (name: string, message: string) => ({
+    subject: 'Response to Your Inquiry',
+    html: `
       <h2>Hello ${name},</h2>
       <p>Thank you for contacting PeptideLab. Here's our response to your inquiry:</p>
       <div style="background-color: #f8f9fa; padding: 20px; border-radius: 8px; margin: 20px 0;">
@@ -216,5 +235,5 @@ export const emailTemplates = {
       </div>
       <p>If you have any further questions, please don't hesitate to reach out.</p>
     `,
-    }),
+  }),
 };

@@ -9,6 +9,7 @@ import Button from '@/components/ui/Button';
 import Input from '@/components/ui/Input';
 import { uploadImage } from '@/lib/supabase';
 import Image from 'next/image';
+import toast from 'react-hot-toast';
 
 const productSchema = z.object({
     name: z.string().min(2, 'Name is required'),
@@ -18,7 +19,7 @@ const productSchema = z.object({
     stock: z.number().int().min(0, 'Stock must be 0 or more'),
     sku: z.string().optional(),
     purity: z.string().optional(),
-    sequence: z.string().optional(),
+    soldout_status: z.boolean().default(false),
 });
 
 type ProductFormData = z.infer<typeof productSchema>;
@@ -33,21 +34,38 @@ export default function ProductForm({ initialData, isEdit = false }: ProductForm
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [imageFile, setImageFile] = useState<File | null>(null);
     const [previewUrl, setPreviewUrl] = useState<string>(initialData?.images?.[0] || '');
+    const [categories, setCategories] = useState<any[]>([]);
 
     const {
         register,
         handleSubmit,
         setValue,
+        watch,
         formState: { errors },
     } = useForm<ProductFormData>({
         resolver: zodResolver(productSchema),
         defaultValues: initialData ? {
             ...initialData,
-            price: Number(initialData.price), // Ensure number
+            price: Number(initialData.price),
+            soldout_status: initialData.soldout_status || false,
         } : {
             stock: 0,
+            soldout_status: false,
         },
     });
+
+    useEffect(() => {
+        const fetchCategories = async () => {
+            try {
+                const res = await fetch('/api/categories');
+                const data = await res.json();
+                setCategories(data);
+            } catch (error) {
+                console.error('Error fetching categories:', error);
+            }
+        };
+        fetchCategories();
+    }, []);
 
     const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         if (e.target.files && e.target.files[0]) {
@@ -64,7 +82,21 @@ export default function ProductForm({ initialData, isEdit = false }: ProductForm
 
             // Upload image if selected
             if (imageFile) {
-                imageUrl = await uploadImage(imageFile, 'products');
+                const uploadFormData = new FormData();
+                uploadFormData.append('file', imageFile);
+
+                const uploadRes = await fetch('/api/upload', {
+                    method: 'POST',
+                    body: uploadFormData,
+                });
+
+                if (!uploadRes.ok) {
+                    const errorData = await uploadRes.json();
+                    throw new Error(errorData.error || 'Image upload failed');
+                }
+
+                const uploadData = await uploadRes.json();
+                imageUrl = uploadData.url;
             }
 
             const payload = {
@@ -84,11 +116,12 @@ export default function ProductForm({ initialData, isEdit = false }: ProductForm
 
             if (!res.ok) throw new Error('Failed to save product');
 
+            toast.success(isEdit ? 'Product updated successfully' : 'Product created successfully');
             router.push('/admin/products');
             router.refresh();
         } catch (error) {
             console.error('Error saving product:', error);
-            alert('Failed to save product. Please try again.');
+            toast.error('Failed to save product. Please try again.');
         } finally {
             setIsSubmitting(false);
         }
@@ -144,28 +177,40 @@ export default function ProductForm({ initialData, isEdit = false }: ProductForm
                                 label="SKU"
                                 {...register('sku')}
                             />
-                            <Input
-                                label="Category"
-                                {...register('category')}
-                                error={errors.category?.message}
-                                placeholder="e.g. Recovery"
-                            />
+                            <div className="flex flex-col">
+                                <label className="block text-sm font-medium text-dark mb-2">Category</label>
+                                <select
+                                    {...register('category')}
+                                    className="w-full px-4 py-3 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-primary bg-white"
+                                >
+                                    <option value="">Select Category</option>
+                                    {categories.map((cat) => (
+                                        <option key={cat._id} value={cat.name}>{cat.name}</option>
+                                    ))}
+                                </select>
+                                {errors.category && <p className="mt-1 text-sm text-error">{errors.category.message}</p>}
+                            </div>
                         </div>
                     </div>
 
                     <div className="bg-white p-6 rounded-lg shadow-sm border border-gray-100">
-                        <h2 className="text-xl font-bold mb-6">Specifications</h2>
+                        <h2 className="text-xl font-bold mb-6">Specifications & Status</h2>
                         <div className="grid grid-cols-2 gap-6">
                             <Input
                                 label="Purity"
                                 placeholder="e.g. ≥99.0%"
                                 {...register('purity')}
                             />
-                            <Input
-                                label="Sequence"
-                                placeholder="Amino acid sequence"
-                                {...register('sequence')}
-                            />
+                            <div className="flex flex-col justify-center">
+                                <label className="flex items-center space-x-3 cursor-pointer mt-4">
+                                    <input
+                                        type="checkbox"
+                                        {...register('soldout_status')}
+                                        className="w-5 h-5 text-primary border-gray-300 rounded focus:ring-primary"
+                                    />
+                                    <span className="text-sm font-bold text-gray-700">Mark as Sold Out</span>
+                                </label>
+                            </div>
                         </div>
                     </div>
                 </div>

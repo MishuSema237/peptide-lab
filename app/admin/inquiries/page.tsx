@@ -49,7 +49,7 @@ export default async function AdminInquiriesPage() {
                                         </span>
                                     </td>
                                     <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
-                                        <button className="text-primary hover:text-primary-600">View</button>
+                                        <Link href={`/admin/inquiries/${inquiry._id}`} className="text-primary hover:text-primary-600">View</Link>
                                     </td>
                                 </tr>
                             ))

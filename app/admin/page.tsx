@@ -1,44 +1,38 @@
-import { auth0 } from '@/lib/auth0';
 import { redirect } from 'next/navigation';
 import connectDB from '@/lib/db/mongodb';
 import Order from '@/models/Order';
 import Product from '@/models/Product';
-import User from '@/models/User';
-import { isAdmin } from '@/lib/auth';
+import { cookies } from 'next/headers';
 
 async function getStats() {
     await connectDB();
 
     const totalOrders = await Order.countDocuments();
+    const pendingOrdersCount = await Order.countDocuments({ status: 'Pending Payment' });
     const totalProducts = await Product.countDocuments();
-    const totalUsers = await User.countDocuments(); // Auth0 users might not be in DB yet unless synced
-
-    // Calculate total revenue
-    const orders = await Order.find({ status: { $ne: 'Cancelled' } });
-    const totalRevenue = orders.reduce((acc, order) => acc + (order.total || 0), 0);
+    const totalRevenueResult = await Order.aggregate([
+        { $match: { status: { $ne: 'Cancelled' } } },
+        { $group: { _id: null, total: { $sum: '$total' } } }
+    ]);
+    const totalRevenue = totalRevenueResult[0]?.total || 0;
 
     const recentOrders = await Order.find().sort({ createdAt: -1 }).limit(5);
 
     return {
         totalOrders,
+        pendingOrdersCount,
         totalProducts,
-        totalUsers,
         totalRevenue,
         recentOrders: JSON.parse(JSON.stringify(recentOrders)),
     };
 }
 
 export default async function AdminDashboard() {
-    const session = await auth0.getSession();
+    const cookieStore = await cookies();
+    const session = cookieStore.get('admin_session');
 
-    // Protect Route
-    if (!session || !session.user) {
-        redirect('/api/auth/login');
-    }
-
-    const isUserAdmin = await isAdmin();
-    if (!isUserAdmin) {
-        redirect('/'); // Redirect non-admins to home
+    if (!session || session.value !== 'true') {
+        redirect('/admin-login');
     }
 
     const stats = await getStats();
@@ -48,7 +42,7 @@ export default async function AdminDashboard() {
             <h1 className="text-2xl font-bold text-dark mb-8">Dashboard Overview</h1>
 
             {/* Stats Cards */}
-            <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
                 <div className="bg-white p-6 rounded-lg shadow-sm border border-gray-100">
                     <div className="flex items-center justify-between mb-4">
                         <h3 className="text-gray-500 font-medium">Total Revenue</h3>
@@ -75,6 +69,18 @@ export default async function AdminDashboard() {
 
                 <div className="bg-white p-6 rounded-lg shadow-sm border border-gray-100">
                     <div className="flex items-center justify-between mb-4">
+                        <h3 className="text-gray-500 font-medium">Pending Payments</h3>
+                        <span className="p-2 bg-yellow-100 text-yellow-600 rounded-full">
+                            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 2m6-2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                            </svg>
+                        </span>
+                    </div>
+                    <p className="text-3xl font-bold text-dark">{stats.pendingOrdersCount}</p>
+                </div>
+
+                <div className="bg-white p-6 rounded-lg shadow-sm border border-gray-100">
+                    <div className="flex items-center justify-between mb-4">
                         <h3 className="text-gray-500 font-medium">Products</h3>
                         <span className="p-2 bg-purple-100 text-purple-600 rounded-full">
                             <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -83,18 +89,6 @@ export default async function AdminDashboard() {
                         </span>
                     </div>
                     <p className="text-3xl font-bold text-dark">{stats.totalProducts}</p>
-                </div>
-
-                <div className="bg-white p-6 rounded-lg shadow-sm border border-gray-100">
-                    <div className="flex items-center justify-between mb-4">
-                        <h3 className="text-gray-500 font-medium">Customers</h3>
-                        <span className="p-2 bg-yellow-100 text-yellow-600 rounded-full">
-                            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z" />
-                            </svg>
-                        </span>
-                    </div>
-                    <p className="text-3xl font-bold text-dark">{stats.totalUsers}</p>
                 </div>
             </div>
 
@@ -148,6 +142,6 @@ export default async function AdminDashboard() {
                     </tbody>
                 </table>
             </div>
-        </div>
+        </div >
     );
 }

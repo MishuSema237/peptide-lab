@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { useCartStore } from '@/lib/store/cart';
 import Button from '@/components/ui/Button';
@@ -11,14 +11,25 @@ export default function CheckoutPage() {
     const router = useRouter();
     const { items, getCartTotal, clearCart } = useCartStore();
     const [isSubmitting, setIsSubmitting] = useState(false);
+    const [paymentMethods, setPaymentMethods] = useState<any[]>([]);
+    const [isLoadingMethods, setIsLoadingMethods] = useState(true);
 
-    // Mock Payment Methods (will be fetched from API later)
-    const paymentMethods = [
-        { id: 'bank-transfer', name: 'Bank Transfer (USD)', type: 'bank' },
-        { id: 'bitcoin', name: 'Bitcoin (BTC)', type: 'crypto' },
-        { id: 'usdt', name: 'USDT (TRC20)', type: 'crypto' },
-        { id: 'zelle', name: 'Zelle', type: 'app' },
-    ];
+    useEffect(() => {
+        const fetchMethods = async () => {
+            try {
+                const res = await fetch('/api/payment-methods');
+                const data = await res.json();
+                if (data.success) {
+                    setPaymentMethods(data.data.filter((m: any) => m.active));
+                }
+            } catch (error) {
+                console.error('Failed to fetch payment methods', error);
+            } finally {
+                setIsLoadingMethods(false);
+            }
+        };
+        fetchMethods();
+    }, []);
 
     const [formData, setFormData] = useState({
         firstName: '',
@@ -34,13 +45,17 @@ export default function CheckoutPage() {
     });
 
     const subtotal = getCartTotal();
-    const shippingCost = 15.00; // Flat rate for now
-    const total = subtotal + shippingCost;
+    const shippingCost = 0.00; // No shipping cost
+    const total = subtotal;
 
-    if (items.length === 0) {
-        if (typeof window !== 'undefined') {
+    // Redirect if cart is empty
+    useEffect(() => {
+        if (items.length === 0) {
             router.push('/cart');
         }
+    }, [items, router]);
+
+    if (items.length === 0) {
         return null;
     }
 
@@ -205,8 +220,8 @@ export default function CheckoutPage() {
                             <div className="space-y-4">
                                 {paymentMethods.map((method) => (
                                     <label
-                                        key={method.id}
-                                        className={`flex items-center p-4 border rounded-lg cursor-pointer transition-all ${formData.paymentMethod === method.id
+                                        key={method._id}
+                                        className={`flex items-center p-4 border rounded-lg cursor-pointer transition-all ${formData.paymentMethod === method.name
                                             ? 'border-primary bg-blue-50 ring-1 ring-primary'
                                             : 'border-gray-200 hover:border-gray-300'
                                             }`}
@@ -214,14 +229,17 @@ export default function CheckoutPage() {
                                         <input
                                             type="radio"
                                             name="paymentMethod"
-                                            value={method.id}
-                                            checked={formData.paymentMethod === method.id}
+                                            value={method.name}
+                                            checked={formData.paymentMethod === method.name}
                                             onChange={handleChange}
                                             className="w-4 h-4 text-primary focus:ring-primary border-gray-300"
                                             required
                                         />
                                         <div className="ml-3">
                                             <span className="block font-medium text-dark">{method.name}</span>
+                                            {formData.paymentMethod === method.name && (
+                                                <p className="text-sm text-gray-500 mt-1">{method.instructions}</p>
+                                            )}
                                         </div>
                                     </label>
                                 ))}
@@ -262,7 +280,7 @@ export default function CheckoutPage() {
                             </div>
                             <div className="flex justify-between text-gray-600">
                                 <span>Shipping</span>
-                                <span>${shippingCost.toFixed(2)}</span>
+                                <span>will be emailed to you</span>
                             </div>
                         </div>
 

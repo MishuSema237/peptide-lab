@@ -1,30 +1,41 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import ProductCard from '@/components/ui/Card';
 
 export default function ShopPage() {
-    // Mock product data (will be replaced with API call)
-    const initialProducts = [
-        { id: '1', name: 'BPC-157 10mg', price: 45.99, image: '/images/placeholder-product.jpg', category: 'Recovery', inStock: true },
-        { id: '2', name: 'TB-500 5mg', price: 52.99, image: '/images/placeholder-product.jpg', category: 'Recovery', inStock: true },
-        { id: '3', name: 'Semaglutide 5mg', price: 89.99, image: '/images/placeholder-product.jpg', category: 'Weight Loss', inStock: true },
-        { id: '4', name: 'Ipamorelin 5mg', price: 38.99, image: '/images/placeholder-product.jpg', category: 'Performance', inStock: true },
-        { id: '5', name: 'CJC-1295 5mg', price: 42.99, image: '/images/placeholder-product.jpg', category: 'Performance', inStock: true },
-        { id: '6', name: 'Melanotan II 10mg', price: 35.99, image: '/images/placeholder-product.jpg', category: 'Lifestyle', inStock: true },
-        { id: '7', name: 'Tirzepatide 10mg', price: 119.99, image: '/images/placeholder-product.jpg', category: 'Weight Loss', inStock: false },
-        { id: '8', name: 'Retatrutide 10mg', price: 129.99, image: '/images/placeholder-product.jpg', category: 'Research', inStock: true },
-    ];
-
-    const [maxPrice, setMaxPrice] = useState(200);
+    const [products, setProducts] = useState([]);
+    const [categories, setCategories] = useState(['All']);
+    const [loading, setLoading] = useState(true);
+    const [maxPrice, setMaxPrice] = useState(250);
     const [selectedCategory, setSelectedCategory] = useState('All');
 
-    const filteredProducts = initialProducts.filter(p =>
+    useEffect(() => {
+        const fetchData = async () => {
+            setLoading(true);
+            try {
+                const [prodRes, catRes] = await Promise.all([
+                    fetch('/api/products'),
+                    fetch('/api/categories')
+                ]);
+                const prodData = await prodRes.json();
+                const catData = await catRes.json();
+
+                setProducts(prodData.data || []);
+                setCategories(['All', ...catData.map((c: any) => c.name)]);
+            } catch (error) {
+                console.error('Error fetching shop data:', error);
+            } finally {
+                setLoading(false);
+            }
+        };
+        fetchData();
+    }, []);
+
+    const filteredProducts = products.filter((p: any) =>
         p.price <= maxPrice &&
         (selectedCategory === 'All' || p.category === selectedCategory)
     );
-
-    const categories = ['All', 'Performance', 'Recovery', 'Weight Loss', 'Lifestyle', 'Research'];
 
     return (
         <div className="container mx-auto px-4 py-8">
@@ -56,8 +67,8 @@ export default function ShopPage() {
                                     <button
                                         onClick={() => setSelectedCategory(cat)}
                                         className={`text-left w-full py-2 px-3 rounded-md transition-colors ${selectedCategory === cat
-                                                ? 'bg-primary/10 text-primary font-bold'
-                                                : 'text-gray-600 hover:bg-gray-50'
+                                            ? 'bg-primary/10 text-primary font-bold'
+                                            : 'text-gray-600 hover:bg-gray-50'
                                             }`}
                                     >
                                         {cat}
@@ -91,17 +102,23 @@ export default function ShopPage() {
 
                 {/* Product Grid */}
                 <div className="flex-1">
-                    {filteredProducts.length > 0 ? (
+                    {loading ? (
+                        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 animate-pulse">
+                            {[1, 2, 3, 4, 5, 6].map(i => (
+                                <div key={i} className="h-[400px] bg-gray-100 rounded-2xl"></div>
+                            ))}
+                        </div>
+                    ) : filteredProducts.length > 0 ? (
                         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-                            {filteredProducts.map((product) => (
-                                <ProductCard key={product.id} {...product} />
+                            {filteredProducts.map((product: any) => (
+                                <ProductCard key={product._id} {...product} id={product._id} inStock={!product.soldout_status} image={product.images?.[0] || '/images/placeholder-product.jpg'} />
                             ))}
                         </div>
                     ) : (
                         <div className="text-center py-20 bg-gray-50 rounded-2xl">
                             <p className="text-gray-500 text-lg">No products found matching your filters.</p>
                             <button
-                                onClick={() => { setMaxPrice(200); setSelectedCategory('All'); }}
+                                onClick={() => { setMaxPrice(250); setSelectedCategory('All'); }}
                                 className="mt-4 text-primary font-bold underline"
                             >
                                 Clear all filters

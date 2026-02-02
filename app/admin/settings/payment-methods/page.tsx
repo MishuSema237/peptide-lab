@@ -63,6 +63,29 @@ export default function PaymentMethodsPage() {
         }
     };
 
+    const handleToggle = async (id: string, currentStatus: boolean) => {
+        try {
+            await fetch(`/api/payment-methods/${id}`, {
+                method: 'PUT',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ active: !currentStatus }),
+            });
+            fetchMethods();
+        } catch (error) {
+            console.error('Failed to update status', error);
+        }
+    };
+
+    const handleDelete = async (id: string) => {
+        if (!confirm('Are you sure you want to delete this method?')) return;
+        try {
+            await fetch(`/api/payment-methods/${id}`, { method: 'DELETE' });
+            fetchMethods();
+        } catch (error) {
+            console.error('Failed to delete method', error);
+        }
+    };
+
     return (
         <div className="max-w-4xl">
             <div className="flex justify-between items-center mb-8">
@@ -132,11 +155,28 @@ export default function PaymentMethodsPage() {
                                 <div className="flex items-center gap-3">
                                     <h3 className="font-bold text-dark">{method.name}</h3>
                                     <span className="px-2 py-1 bg-gray-100 text-xs rounded text-gray-500 uppercase">{method.type}</span>
-                                    {method.active && <span className="px-2 py-1 bg-green-100 text-green-700 text-xs rounded">Active</span>}
+                                    <span
+                                        className={`px-2 py-1 text-xs rounded cursor-pointer ${method.active
+                                            ? 'bg-green-100 text-green-700'
+                                            : 'bg-red-100 text-red-700'
+                                            }`}
+                                        onClick={() => handleToggle(method._id, method.active)}
+                                    >
+                                        {method.active ? 'Active' : 'Disabled'}
+                                    </span>
                                 </div>
                                 <p className="text-sm text-gray-500 mt-1">{method.details}</p>
                             </div>
-                            <Button variant="outline" size="sm">Edit</Button>
+                            <div className="flex gap-2">
+                                <Button
+                                    variant="outline"
+                                    size="sm"
+                                    onClick={() => handleDelete(method._id)}
+                                    className="text-red-600 border-red-200 hover:bg-red-50"
+                                >
+                                    Delete
+                                </Button>
+                            </div>
                         </div>
                     ))
                 ) : (

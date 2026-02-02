@@ -1,8 +1,23 @@
 import Link from 'next/link';
 import Image from 'next/image';
 import Button from '@/components/ui/Button';
+import connectDB from '@/lib/db/mongodb';
+import Product from '@/models/Product';
+import Testimonial from '@/models/Testimonial';
+import ProductCard from '@/components/ui/Card';
 
-export default function Home() {
+async function getHomeData() {
+  await connectDB();
+  const products = await Product.find({}).sort({ createdAt: -1 }).limit(3);
+  const testimonials = await Testimonial.find({ active: true }).sort({ createdAt: -1 }).limit(6);
+  return {
+    products: JSON.parse(JSON.stringify(products)),
+    testimonials: JSON.parse(JSON.stringify(testimonials)),
+  };
+}
+
+export default async function Home() {
+  const { products, testimonials } = await getHomeData();
   const partnerLogos = [
     { name: 'WebMD', src: '/images/partner-logos/WebMD_logo-150x35.png' },
     { name: 'Bachem', src: '/images/partner-logos/bachem_logo_blue-1-150x31.png' },
@@ -112,45 +127,39 @@ export default function Home() {
           </div>
         </div>
 
-        <div className="container mx-auto px-6 -mt-32 relative z-10">
-          {/* The White Card overlapping the gray background */}
-          <div className="max-w-7xl mx-auto bg-white p-6 md:p-16 rounded-[40px] shadow-2xl border border-gray-100 mb-20">
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-              {[1, 2, 3].map((i) => (
-                <div key={i} className="border border-gray-200 rounded-xl p-8 flex flex-col items-center transition-all hover:shadow-xl hover:-translate-y-1 group bg-white">
-                  <h3 className="text-2xl font-heading font-medium mb-1 group-hover:text-primary transition-colors text-center">GHK-Cu 50mg</h3>
-                  <p className="text-xs text-gray-500 uppercase tracking-[0.2em] mb-3 font-sans font-semibold">Recovery</p>
-                  <p className="text-2xl font-bold mb-8 font-sans text-primary">$75.00</p>
-
-                  <div className="w-full aspect-[4/3] bg-gray-50 rounded-xl mb-10 flex items-center justify-center border border-dashed border-gray-200 group-hover:bg-gray-100 transition-colors">
-                    <div className="w-14 h-14 bg-gray-200 rounded-lg opacity-40"></div>
-                  </div>
-
-                  <Link href="/shop" className="w-full">
-                    <Button variant="primary" className="w-full bg-secondary hover:bg-secondary-600 text-dark font-bold py-4 shadow-sm active:scale-95 transition-all text-lg">
-                      Shop Now
-                    </Button>
-                  </Link>
-                </div>
-              ))}
-            </div>
+        {/* The White Card overlapping the gray background */}
+        <div className="max-w-7xl mx-auto bg-white p-6 md:p-16 rounded-[40px] shadow-2xl border border-gray-100 mb-20 relative z-10 -mt-32">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+            {products.map((product: any) => (
+              <ProductCard
+                key={product._id}
+                id={product._id}
+                name={product.name}
+                price={product.price}
+                image={product.images?.[0] || '/images/placeholder-product.jpg'}
+                category={product.category}
+                inStock={!product.soldout_status}
+                purity={product.purity}
+                sku={product.sku}
+              />
+            ))}
           </div>
+        </div>
 
-          {/* Partner Logos Section */}
-          <div className="mt-12 text-center pb-20">
-            <h3 className="text-2xl md:text-3xl font-heading mb-12">Partner in Research</h3>
-            <div className="flex flex-wrap justify-center items-center gap-8 md:gap-16 opacity-60 grayscale hover:opacity-100 transition-all duration-500">
-              {partnerLogos.map((logo, idx) => (
-                <div key={idx} className="relative h-12 w-32 md:w-40">
-                  <Image
-                    src={logo.src}
-                    alt={logo.name}
-                    fill
-                    className="object-contain"
-                  />
-                </div>
-              ))}
-            </div>
+        {/* Partner Logos Section */}
+        <div className="mt-12 text-center pb-20">
+          <h3 className="text-2xl md:text-3xl font-heading mb-12">Partner in Research</h3>
+          <div className="flex flex-wrap justify-center items-center gap-8 md:gap-16 opacity-60 grayscale hover:opacity-100 transition-all duration-500">
+            {partnerLogos.map((logo, idx) => (
+              <div key={idx} className="relative h-12 w-32 md:w-40">
+                <Image
+                  src={logo.src}
+                  alt={logo.name}
+                  fill
+                  className="object-contain"
+                />
+              </div>
+            ))}
           </div>
         </div>
       </section>
@@ -163,7 +172,7 @@ export default function Home() {
             <div className="w-full md:w-1/2 flex justify-center md:justify-start -mx-6 md:mx-0">
               <div className="aspect-square w-full md:max-w-md relative overflow-hidden md:rounded-3xl rounded-none group shadow-sm h-[300px] md:h-auto">
                 <Image
-                  src="/images/sophisticated-lab.jpg"
+                  src="/images/sophisticated-lab.png"
                   alt="Sophisticated Research Laboratory"
                   fill
                   className="object-cover group-hover:scale-105 transition-transform duration-700"
@@ -212,6 +221,40 @@ export default function Home() {
                 </div>
               ))}
             </div>
+          </div>
+        </div>
+      </section>
+
+      {/* SECTION 4: Testimonials */}
+      <section className="py-24 bg-gray-50 overflow-hidden">
+        <div className="container mx-auto px-6">
+          <div className="text-center mb-16">
+            <h2 className="text-4xl md:text-5xl font-bold text-dark mb-4">What Our Researchers Say</h2>
+            <p className="text-lg text-gray-500 max-w-2xl mx-auto">
+              Trusted by research professionals and clinicians worldwide for unmatched purity and consistency.
+            </p>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+            {testimonials.length > 0 ? (
+              testimonials.map((t: any) => (
+                <div key={t._id} className="bg-white p-8 rounded-3xl shadow-sm border border-gray-100 flex flex-col h-full">
+                  <div className="flex mb-4 text-yellow-500">
+                    {'★'.repeat(Math.floor(t.rating))}
+                    {t.rating % 1 !== 0 ? '½' : ''}
+                  </div>
+                  <p className="text-gray-600 italic mb-8 flex-1 font-sans leading-relaxed">"{t.message}"</p>
+                  <div>
+                    <p className="font-bold text-dark">{t.name}</p>
+                    <p className="text-xs text-gray-400 uppercase tracking-widest mt-1">Verified Researcher</p>
+                  </div>
+                </div>
+              ))
+            ) : (
+              <div className="col-span-full text-center py-10">
+                <p className="text-gray-400 italic">No testimonials yet.</p>
+              </div>
+            )}
           </div>
         </div>
       </section>

@@ -31,10 +31,11 @@ export const supabaseAdmin = supabaseServiceKey
  */
 export async function uploadImage(
     file: File,
-    bucket: string = 'products',
+    bucket: string = 'PeptidesLab',
     path?: string
 ): Promise<string> {
     const fileName = path || `${Date.now()}-${file.name}`;
+    console.log(`[Supabase] Uploading to bucket: '${bucket}'`);
 
     const { data, error } = await supabase.storage
         .from(bucket)
@@ -61,7 +62,7 @@ export async function uploadImage(
  */
 export async function deleteImage(
     filePath: string,
-    bucket: string = 'products'
+    bucket: string = 'PeptidesLab'
 ): Promise<void> {
     const { error } = await supabase.storage.from(bucket).remove([filePath]);
 

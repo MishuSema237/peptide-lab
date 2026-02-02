@@ -3,71 +3,75 @@
 import React from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
+import { useCartStore } from '@/lib/store/cart';
+import Button from '@/components/ui/Button';
 
 interface ProductCardProps {
     id: string;
     name: string;
     price: number;
     image: string;
-    category?: string;
-    inStock?: boolean;
+    category: string;
+    inStock: boolean;
+    purity?: string;
+    sku?: string;
 }
 
-export default function ProductCard({
-    id,
-    name,
-    price,
-    image,
-    category,
-    inStock = true,
-}: ProductCardProps) {
-    return (
-        <Link href={`/products/${id}`}>
-            <div className="card p-4 group cursor-pointer h-full flex flex-col">
-                {/* Image Container */}
-                <div className="relative aspect-square mb-4 overflow-hidden rounded-lg bg-gray-100">
-                    <Image
-                        src={image}
-                        alt={name}
-                        fill
-                        className="object-cover group-hover:scale-105 transition-transform duration-300"
-                    />
-                    {!inStock && (
-                        <div className="absolute inset-0 bg-black bg-opacity-50 flex items-center justify-center">
-                            <span className="text-white font-semibold">Out of Stock</span>
-                        </div>
-                    )}
-                </div>
+export default function ProductCard({ id, name, price, image, category, inStock, purity, sku }: ProductCardProps) {
+    const { addItem } = useCartStore();
 
-                {/* Product Info */}
-                <div className="flex-1 flex flex-col">
-                    {category && (
-                        <p className="text-xs text-secondary font-medium uppercase tracking-wide mb-1">
+    return (
+        <div className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden group transition-all hover:shadow-xl hover:-translate-y-1 flex flex-col h-full">
+            {/* Image Container */}
+            <div className="relative aspect-square overflow-hidden bg-gray-50">
+                <Image
+                    src={image || '/images/placeholder-product.jpg'}
+                    alt={name}
+                    fill
+                    className="object-contain p-4 transition-transform duration-500 group-hover:scale-110"
+                />
+                {!inStock && (
+                    <div className="absolute inset-0 bg-white/60 flex items-center justify-center backdrop-blur-[2px]">
+                        <span className="bg-error text-white px-4 py-2 rounded-full font-bold text-sm shadow-lg">OUT OF STOCK</span>
+                    </div>
+                )}
+                {category && (
+                    <div className="absolute top-4 left-4">
+                        <span className="bg-primary/10 text-primary px-3 py-1 rounded-full text-xs font-bold backdrop-blur-sm border border-primary/20">
                             {category}
-                        </p>
-                    )}
-                    <h3 className="font-semibold text-dark mb-2 group-hover:text-primary transition-colors line-clamp-2">
+                        </span>
+                    </div>
+                )}
+            </div>
+
+            {/* Content */}
+            <div className="p-6 flex flex-col flex-1">
+                <div className="mb-4">
+                    <h3 className="text-lg font-heading font-bold text-dark line-clamp-2 leading-tight group-hover:text-primary transition-colors">
                         {name}
                     </h3>
-                    <div className="mt-auto">
-                        <p className="text-2xl font-bold text-primary">
-                            ${price.toFixed(2)}
-                        </p>
+                    <div className="flex items-center gap-3 mt-2">
+                        {purity && (
+                            <span className="text-[10px] font-bold text-gray-400 uppercase tracking-wider">{purity} Purity</span>
+                        )}
+                        {sku && (
+                            <span className="text-[10px] font-bold text-gray-400 uppercase tracking-wider">SKU: {sku}</span>
+                        )}
                     </div>
                 </div>
 
-                {/* Add to Cart Button */}
-                <button
-                    onClick={(e) => {
-                        e.preventDefault();
-                        // TODO: Add to cart functionality
-                    }}
-                    disabled={!inStock}
-                    className="mt-4 w-full bg-accent text-dark font-semibold py-2 px-4 rounded-lg hover:bg-accent-600 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-                >
-                    {inStock ? 'Add to Cart' : 'Out of Stock'}
-                </button>
+                <div className="mt-auto flex items-center justify-between gap-4">
+                    <span className="text-2xl font-bold text-primary">${price.toFixed(2)}</span>
+                    <Button
+                        size="sm"
+                        className={`${!inStock ? 'bg-gray-200 cursor-not-allowed text-gray-500' : 'bg-secondary hover:bg-secondary-600 text-dark'} font-bold px-4 transition-all active:scale-95`}
+                        onClick={() => inStock && addItem({ id, name, price, image, quantity: 1 })}
+                        disabled={!inStock}
+                    >
+                        {inStock ? 'Add to Cart' : 'Sold Out'}
+                    </Button>
+                </div>
             </div>
-        </Link>
+        </div>
     );
 }

@@ -1,8 +1,21 @@
-import { auth0 } from './lib/auth0';
+import { NextResponse } from 'next/server';
 import type { NextRequest } from 'next/server';
 
 export async function middleware(request: NextRequest) {
-    return await auth0.middleware(request);
+    const { pathname } = request.nextUrl;
+
+    // Protect /admin routes, but allow /admin-login
+    if (pathname.startsWith('/admin') && pathname !== '/admin-login') {
+        const session = request.cookies.get('admin_session');
+
+        if (!session || session.value !== 'true') {
+            // Not authenticated as admin, redirect to login
+            const loginUrl = new URL('/admin-login', request.url);
+            return NextResponse.redirect(loginUrl);
+        }
+    }
+
+    return NextResponse.next();
 }
 
 export const config = {

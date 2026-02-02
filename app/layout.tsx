@@ -1,8 +1,8 @@
-import { Auth0Provider } from '@auth0/nextjs-auth0/client';
 import type { Metadata } from "next";
 import "./globals.css";
 import Navbar from "@/components/layout/Navbar";
 import Footer from "@/components/layout/Footer";
+import ToasterProvider from "@/components/providers/ToasterProvider";
 
 export const metadata: Metadata = {
   title: "PeptideLab - Precision Peptides for Advanced Research",
@@ -22,14 +22,13 @@ export default function RootLayout({
         <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
         <link href="https://fonts.googleapis.com/css2?family=EB+Garamond:ital,wght@0,400..800;1,400..800&family=Montserrat:ital,wght@0,100..900;1,100..900&display=swap" rel="stylesheet" />
       </head>
-      <body>
-        <Auth0Provider>
-          <Navbar />
-          <main className="min-h-screen">
-            {children}
-          </main>
-          <Footer />
-        </Auth0Provider>
+      <body suppressHydrationWarning={true}>
+        <ToasterProvider />
+        <Navbar />
+        <main className="min-h-screen">
+          {children}
+        </main>
+        <Footer />
       </body>
     </html>
   );

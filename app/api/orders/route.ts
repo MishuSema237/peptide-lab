@@ -12,13 +12,20 @@ export async function POST(req: NextRequest) {
         // Generate Order Number (Simple timestamp + random for now)
         const orderNumber = `ORD-${Date.now().toString().slice(-6)}-${Math.floor(Math.random() * 1000)}`;
 
+        // Calculate subtotal
+        const subtotal = items.reduce((sum: number, item: any) => sum + (item.price * item.quantity), 0);
+        const shippingCost = 0; // Default shipping cost
+        const calculatedTotal = subtotal + shippingCost;
+
         // Create Order
         const newOrder = await Order.create({
             orderNumber,
             userId, // Optional
             guestEmail: shippingInfo.email,
             items,
-            total,
+            subtotal,
+            shippingCost,
+            total: calculatedTotal,
             shippingInfo,
             paymentMethod,
             status: 'Pending Payment',

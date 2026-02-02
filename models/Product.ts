@@ -34,7 +34,10 @@ const ProductSchema = new mongoose.Schema({
         type: String,
     },
     purity: String,
-    sequence: String,
+    soldout_status: {
+        type: Boolean,
+        default: false,
+    },
     featured: {
         type: Boolean,
         default: false,

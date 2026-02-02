@@ -2,10 +2,15 @@
 
 import Link from 'next/link';
 import { useState } from 'react';
+import { usePathname } from 'next/navigation';
 
 export default function Footer() {
+    const pathname = usePathname();
     const [email, setEmail] = useState('');
     const [subscribeStatus, setSubscribeStatus] = useState<'idle' | 'loading' | 'success' | 'error'>('idle');
+
+    // Do not show Footer on admin pages
+    if (pathname && (pathname.startsWith('/admin') || pathname === '/admin-login')) return null;
 
     const handleNewsletterSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
@@ -63,6 +68,16 @@ export default function Footer() {
                                     About Us
                                 </Link>
                             </li>
+                            <li>
+                                <Link href="/track-order" className="text-gray-300 hover:text-accent transition-colors">
+                                    Track Order
+                                </Link>
+                            </li>
+                            <li>
+                                <Link href="/admin-login" className="text-gray-300 hover:text-accent transition-colors">
+                                    Admin Login
+                                </Link>
+                            </li>
                         </ul>
                     </div>
 
@@ -108,12 +123,10 @@ export default function Footer() {
                                 onChange={(e) => setEmail(e.target.value)}
                                 placeholder="Enter your email"
                                 required
-                                disabled={subscribeStatus === 'loading'}
                                 className="flex-1 px-4 py-2 rounded-lg bg-white text-dark focus:outline-none focus:ring-2 focus:ring-accent disabled:opacity-50"
                             />
                             <button
                                 type="submit"
-                                disabled={subscribeStatus === 'loading'}
                                 className="px-6 py-2 bg-accent text-dark font-semibold rounded-lg hover:bg-accent-600 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                             >
                                 {subscribeStatus === 'loading' ? 'Subscribing...' : 'Subscribe'}
