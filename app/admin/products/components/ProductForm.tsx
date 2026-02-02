@@ -19,7 +19,7 @@ const productSchema = z.object({
     stock: z.number().int().min(0, 'Stock must be 0 or more'),
     sku: z.string().optional(),
     purity: z.string().optional(),
-    soldout_status: z.boolean().default(false),
+    soldout_status: z.boolean(),
 });
 
 type ProductFormData = z.infer<typeof productSchema>;
