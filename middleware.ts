@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server';
 import type { NextRequest } from 'next/server';
 
-export async function proxy(request: NextRequest) {
+export async function middleware(request: NextRequest) {
     const { pathname } = request.nextUrl;
 
     // Protect /admin routes, but allow /admin-login
@@ -19,7 +19,7 @@ export async function proxy(request: NextRequest) {
 }
 
 export const config = {
-    proxy: [
+    matcher: [
         /*
          * Match all request paths except for:
          * - _next/static (static files)
