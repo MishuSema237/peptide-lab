@@ -4,10 +4,41 @@ import Navbar from "@/components/layout/Navbar";
 import Footer from "@/components/layout/Footer";
 import ToasterProvider from "@/components/providers/ToasterProvider";
 
+
 export const metadata: Metadata = {
+  metadataBase: new URL("https://peptide-lab-six.vercel.app"),
+
   title: "PeptideLab - Precision Peptides for Advanced Research",
-  description: "Premium-grade peptide formulations backed by rigorous testing and research. Delivering excellence in performance, recovery, and health innovation.",
-  keywords: "peptides, research peptides, premium peptides, health supplements, performance enhancement",
+  description:
+    "Premium-grade peptide formulations backed by rigorous testing and research. Delivering excellence in performance, recovery, and health innovation.",
+
+  keywords:
+    "peptides, research peptides, premium peptides, health supplements, performance enhancement",
+
+  openGraph: {
+    title: "PeptideLab - Precision Peptides for Advanced Research",
+    description:
+      "Premium-grade peptide formulations backed by rigorous testing and research.",
+    url: "https://peptide-lab-six.vercel.app",
+    siteName: "PeptideLab",
+    images: [
+      {
+        url: "/thumbnail.png", // ✅ relative is OK because metadataBase is set
+        width: 1200,
+        height: 630,
+        alt: "PeptideLab Research Preview",
+      },
+    ],
+    type: "website",
+  },
+
+  twitter: {
+    card: "summary_large_image",
+    title: "PeptideLab - Precision Peptides for Advanced Research",
+    description:
+      "Premium-grade peptide formulations backed by rigorous testing and research.",
+    images: ["/thumbnail.png"],
+  },
 };
 
 export default function RootLayout({
