@@ -8,25 +8,25 @@ import ToasterProvider from "@/components/providers/ToasterProvider";
 export const metadata: Metadata = {
   metadataBase: new URL("https://peptide-lab-six.vercel.app"),
 
-  title: "PeptideLab - Precision Peptides for Advanced Research",
+  title: "PeptideLab — Premium Peptides for Sale",
   description:
-    "Premium-grade peptide formulations backed by rigorous testing and research. Delivering excellence in performance, recovery, and health innovation.",
+    "Shop high-quality peptides for sale at PeptideLab. Trusted formulations, secure ordering, and fast delivery for performance, recovery, and wellness.",
 
   keywords:
-    "peptides, research peptides, premium peptides, health supplements, performance enhancement",
+    "peptides for sale, buy peptides, premium peptides, peptide shop, peptide supplements",
 
   openGraph: {
-    title: "PeptideLab - Precision Peptides for Advanced Research",
+    title: "PeptideLab — Premium Peptides for Sale",
     description:
-      "Premium-grade peptide formulations backed by rigorous testing and research.",
+      "High-quality peptides for sale. Secure checkout, trusted formulations, and fast delivery.",
     url: "https://peptide-lab-six.vercel.app",
     siteName: "PeptideLab",
     images: [
       {
-        url: "/thumbnail.png", // ✅ relative is OK because metadataBase is set
+        url: "/thumbnail.png",
         width: 1200,
         height: 630,
-        alt: "PeptideLab Research Preview",
+        alt: "PeptideLab — Premium Peptides for Sale",
       },
     ],
     type: "website",
@@ -34,12 +34,13 @@ export const metadata: Metadata = {
 
   twitter: {
     card: "summary_large_image",
-    title: "PeptideLab - Precision Peptides for Advanced Research",
+    title: "PeptideLab — Premium Peptides for Sale",
     description:
-      "Premium-grade peptide formulations backed by rigorous testing and research.",
+      "Buy premium peptides online. Trusted quality, fast delivery.",
     images: ["/thumbnail.png"],
   },
 };
+
 
 export default function RootLayout({
   children,
