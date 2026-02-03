@@ -1,21 +1,72 @@
+'use client';
+
+import { useState, useEffect } from 'react';
 import Image from 'next/image';
 import Button from '@/components/ui/Button';
+import { useCartStore } from '@/lib/store/cart';
+import toast from 'react-hot-toast';
+import { useParams } from 'next/navigation';
 
-export default async function ProductDetailPage({ params }: { params: Promise<{ id: string }> }) {
-    const { id } = await params;
-    // Mock product data
-    const product = {
-        id: id,
-        name: 'BPC-157 10mg',
-        price: 45.99,
-        description: `BPC-157 (Body Protection Compound-157) is a pentadecapeptide made up of 15 amino acids. It is a partial sequence of body protection compound (BPC) that is discovered in and isolated from human gastric juice. Experimentally it has been demonstrated to accelerate the healing of many different wounds, including tendon-to-bone healing and superior healing of damaged ligaments.`,
-        image: '/images/placeholder-product.jpg',
-        category: 'Recovery',
-        inStock: true,
-        sku: 'PEP-BPC-010',
-        purity: '≥99.0%',
-        sequence: 'Gly-Glu-Pro-Pro-Pro-Gly-Kp-Pro-Ala-Asp-Asp-Ala-Gly-Leu-Val',
+export default function ProductDetailPage() {
+    const params = useParams();
+    const [quantity, setQuantity] = useState(1);
+    const [loading, setLoading] = useState(true);
+    const [product, setProduct] = useState<any>(null);
+    const { addItem } = useCartStore();
+
+    // Fetch product data
+    useEffect(() => {
+        const fetchProduct = async () => {
+            try {
+                const res = await fetch(`/api/products/${params.id}`);
+                const data = await res.json();
+                console.log('Product API Response:', data); // Debug log
+                setProduct(data.success ? data.data : null);
+            } catch (error) {
+                console.error('Error fetching product:', error);
+            } finally {
+                setLoading(false);
+            }
+        };
+
+        fetchProduct();
+    }, [params.id]);
+
+    const handleAddToCart = () => {
+        if (!product) return;
+
+        const cartItem = {
+            id: product._id,
+            name: product.name,
+            price: product.price,
+            image: product.images && product.images.length > 0 ? product.images[0] : '/images/placeholder-product.jpg',
+            quantity: quantity
+        };
+
+        addItem(cartItem);
+        toast.success(`${product.name} added to cart!`);
     };
+
+    if (loading) {
+        return (
+            <div className="min-h-screen flex items-center justify-center">
+                <div className="text-center">
+                    <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto mb-4"></div>
+                    <p className="text-gray-600">Loading product details...</p>
+                </div>
+            </div>
+        );
+    }
+
+    if (!product) {
+        return (
+            <div className="min-h-screen flex items-center justify-center">
+                <div className="text-center">
+                    <p className="text-gray-600">Product not found.</p>
+                </div>
+            </div>
+        );
+    }
 
     return (
         <div className="container mx-auto px-4 py-12">
@@ -23,12 +74,18 @@ export default async function ProductDetailPage({ params }: { params: Promise<{ 
                 {/* Product Image */}
                 <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-8 flex items-center justify-center">
                     <div className="relative w-full aspect-square max-w-md">
-                        <Image
-                            src={product.image}
-                            alt={product.name}
-                            fill
-                            className="object-contain"
-                        />
+                        {product.images && product.images.length > 0 ? (
+                            <Image
+                                src={product.images[0]}
+                                alt={product.name}
+                                fill
+                                className="object-contain"
+                            />
+                        ) : (
+                            <div className="w-full aspect-square max-w-md flex items-center justify-center bg-gray-100 rounded-lg">
+                                <span className="text-gray-400">No image available</span>
+                            </div>
+                        )}
                     </div>
                 </div>
 
@@ -51,11 +108,11 @@ export default async function ProductDetailPage({ params }: { params: Promise<{ 
                     <div className="space-y-4 mb-8">
                         <div className="flex justify-between py-3 border-b">
                             <span className="font-semibold text-gray-700">SKU</span>
-                            <span className="text-gray-600">{product.sku}</span>
+                            <span className="text-gray-600">{product.sku || 'N/A'}</span>
                         </div>
                         <div className="flex justify-between py-3 border-b">
                             <span className="font-semibold text-gray-700">Purity</span>
-                            <span className="text-gray-600">{product.purity}</span>
+                            <span className="text-gray-600">{product.purity || 'N/A'}</span>
                         </div>
                     </div>
 
@@ -64,13 +121,19 @@ export default async function ProductDetailPage({ params }: { params: Promise<{ 
                             <label className="sr-only">Quantity</label>
                             <input
                                 type="number"
-                                defaultValue={1}
+                                value={quantity}
+                                onChange={(e) => setQuantity(Math.max(1, parseInt(e.target.value) || 1))}
                                 min={1}
                                 className="w-full px-4 py-3 border rounded-lg text-center"
                             />
                         </div>
-                        <Button size="lg" className="flex-1">
-                            Add to Cart
+                        <Button
+                            size="lg"
+                            className="flex-1"
+                            onClick={handleAddToCart}
+                            disabled={!product.stock || product.soldout_status}
+                        >
+                            {product.stock && !product.soldout_status ? 'Add to Cart' : 'Sold Out'}
                         </Button>
                     </div>
                 </div>

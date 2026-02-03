@@ -85,12 +85,12 @@ export default function TrackOrderPage() {
 
                 {order && (
                     <div className="bg-white rounded-2xl shadow-xl p-8 border border-gray-100 animate-slide-up">
-                        <div className="flex items-center justify-between mb-8 border-b border-gray-100 pb-4">
+                        <div className="flex items-left md:items-center flex-col md:flex-row justify-between mb-8 border-b border-gray-100 pb-4">
                             <div>
                                 <h2 className="text-xl font-bold text-dark">Order Status</h2>
                                 <p className="text-gray-500 text-sm">Order #{order.orderNumber}</p>
                             </div>
-                            <span className={`px-4 py-1 rounded-full text-sm font-bold ${order.status === 'Delivered' ? 'bg-green-100 text-green-700' :
+                            <span className={`px-4 py-1 rounded-full text-center mt-2 md:mt-0 text-sm font-bold ${order.status === 'Delivered' ? 'bg-green-100 text-green-700' :
                                 order.status === 'Shipped' ? 'bg-blue-100 text-blue-700' :
                                     'bg-yellow-100 text-yellow-700'
                                 }`}>

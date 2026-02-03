@@ -3,7 +3,6 @@
 import React from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
-import { useCartStore } from '@/lib/store/cart';
 import Button from '@/components/ui/Button';
 
 interface ProductCardProps {
@@ -18,7 +17,6 @@ interface ProductCardProps {
 }
 
 export default function ProductCard({ id, name, price, image, category, inStock, purity, sku }: ProductCardProps) {
-    const { addItem } = useCartStore();
 
     return (
         <div className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden group transition-all hover:shadow-xl hover:-translate-y-1 flex flex-col h-full">
@@ -62,14 +60,24 @@ export default function ProductCard({ id, name, price, image, category, inStock,
 
                 <div className="mt-auto flex items-center justify-between gap-4">
                     <span className="text-2xl font-bold text-primary">${price.toFixed(2)}</span>
-                    <Button
-                        size="sm"
-                        className={`${!inStock ? 'bg-gray-200 cursor-not-allowed text-gray-500' : 'bg-secondary hover:bg-secondary-600 text-dark'} font-bold px-4 transition-all active:scale-95`}
-                        onClick={() => inStock && addItem({ id, name, price, image, quantity: 1 })}
-                        disabled={!inStock}
-                    >
-                        {inStock ? 'Add to Cart' : 'Sold Out'}
-                    </Button>
+{inStock ? (
+                        <Link href={`/products/${id}`}>
+                            <Button
+                                size="sm"
+                                className="bg-secondary hover:bg-secondary-600 text-dark font-bold px-4 transition-all active:scale-95"
+                            >
+                                Details
+                            </Button>
+                        </Link>
+                    ) : (
+                        <Button
+                            size="sm"
+                            className="bg-gray-200 cursor-not-allowed text-gray-500 font-bold px-4"
+                            disabled
+                        >
+                            Sold Out
+                        </Button>
+                    )}
                 </div>
             </div>
         </div>
