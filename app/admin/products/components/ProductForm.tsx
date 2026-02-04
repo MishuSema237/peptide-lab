@@ -19,6 +19,9 @@ const productSchema = z.object({
     stock: z.number().int().min(0, 'Stock must be 0 or more'),
     sku: z.string().optional(),
     purity: z.string().optional(),
+    content: z.string().optional(),
+    size: z.string().optional(),
+    form: z.string().optional(),
     soldout_status: z.boolean(),
 });
 
@@ -32,8 +35,9 @@ interface ProductFormProps {
 export default function ProductForm({ initialData, isEdit = false }: ProductFormProps) {
     const router = useRouter();
     const [isSubmitting, setIsSubmitting] = useState(false);
-    const [imageFile, setImageFile] = useState<File | null>(null);
-    const [previewUrl, setPreviewUrl] = useState<string>(initialData?.images?.[0] || '');
+    const [imageFiles, setImageFiles] = useState<File[]>([]);
+    const [previewUrls, setPreviewUrls] = useState<string[]>(initialData?.images || []);
+    const [imagesToRemove, setImagesToRemove] = useState<string[]>([]);
     const [categories, setCategories] = useState<any[]>([]);
 
     const {
@@ -68,41 +72,80 @@ export default function ProductForm({ initialData, isEdit = false }: ProductForm
     }, []);
 
     const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-        if (e.target.files && e.target.files[0]) {
-            const file = e.target.files[0];
-            setImageFile(file);
-            setPreviewUrl(URL.createObjectURL(file));
+        if (e.target.files) {
+            const filesArray = Array.from(e.target.files);
+            setImageFiles([...imageFiles, ...filesArray]);
+
+            const newPreviews = filesArray.map(file => URL.createObjectURL(file));
+            setPreviewUrls([...previewUrls, ...newPreviews]);
+        }
+    };
+
+    const removePreviewImage = (index: number) => {
+        const urlToRemove = previewUrls[index];
+
+        // If it's an existing image (URL string), mark for removal
+        if (initialData?.images?.includes(urlToRemove)) {
+            setImagesToRemove([...imagesToRemove, urlToRemove]);
+        }
+
+        // Remove from preview
+        const newPreviews = previewUrls.filter((_, i) => i !== index);
+        setPreviewUrls(newPreviews);
+
+        // Remove from new files if it's a new upload
+        const newFileIndex = index - (initialData?.images?.length || 0) + imagesToRemove.length;
+        if (newFileIndex >= 0 && newFileIndex < imageFiles.length) {
+            const newFiles = imageFiles.filter((_, i) => i !== newFileIndex);
+            setImageFiles(newFiles);
         }
     };
 
     const onSubmit = async (data: ProductFormData) => {
         setIsSubmitting(true);
         try {
-            let imageUrl = initialData?.images?.[0]; // Keep existing if no new one
+            // Upload all new images
+            const uploadedUrls: string[] = [];
 
-            // Upload image if selected
-            if (imageFile) {
-                const uploadFormData = new FormData();
-                uploadFormData.append('file', imageFile);
+            if (imageFiles.length > 0) {
+                toast.loading(`Uploading ${imageFiles.length} image(s)...`, { id: 'upload' });
 
-                const uploadRes = await fetch('/api/upload', {
-                    method: 'POST',
-                    body: uploadFormData,
-                });
+                for (const file of imageFiles) {
+                    const uploadFormData = new FormData();
+                    uploadFormData.append('file', file);
 
-                if (!uploadRes.ok) {
-                    const errorData = await uploadRes.json();
-                    throw new Error(errorData.error || 'Image upload failed');
+                    const uploadRes = await fetch('/api/upload', {
+                        method: 'POST',
+                        body: uploadFormData,
+                    });
+
+                    if (!uploadRes.ok) {
+                        const errorData = await uploadRes.json();
+                        throw new Error(errorData.error || 'Image upload failed');
+                    }
+
+                    const uploadData = await uploadRes.json();
+                    uploadedUrls.push(uploadData.url);
                 }
 
-                const uploadData = await uploadRes.json();
-                imageUrl = uploadData.url;
+                toast.dismiss('upload');
             }
+
+            // Combine existing images (not marked for removal) with new uploads
+            const existingImages = initialData?.images?.filter(
+                (img: string) => !imagesToRemove.includes(img)
+            ) || [];
+
+            const finalImages = [...existingImages, ...uploadedUrls];
+
+            // Generate slug - keep existing slug when editing, create new one for new products
+            const baseSlug = data.name.toLowerCase().replace(/ /g, '-').replace(/[^\w-]+/g, '');
+            const slug = isEdit && initialData?.slug ? initialData.slug : `${baseSlug}-${Date.now()}`;
 
             const payload = {
                 ...data,
-                images: imageUrl ? [imageUrl] : [],
-                slug: data.name.toLowerCase().replace(/ /g, '-').replace(/[^\w-]+/g, ''),
+                images: finalImages,
+                slug,
             };
 
             const url = isEdit ? `/api/products/${initialData._id}` : '/api/products';
@@ -198,19 +241,34 @@ export default function ProductForm({ initialData, isEdit = false }: ProductForm
                         <div className="grid grid-cols-2 gap-6">
                             <Input
                                 label="Purity"
-                                placeholder="e.g. ≥99.0%"
+                                placeholder="e.g. ≥99.0"
                                 {...register('purity')}
                             />
-                            <div className="flex flex-col justify-center">
-                                <label className="flex items-center space-x-3 cursor-pointer mt-4">
-                                    <input
-                                        type="checkbox"
-                                        {...register('soldout_status')}
-                                        className="w-5 h-5 text-primary border-gray-300 rounded focus:ring-primary"
-                                    />
-                                    <span className="text-sm font-bold text-gray-700">Mark as Sold Out</span>
-                                </label>
-                            </div>
+                            <Input
+                                label="Content"
+                                placeholder="e.g. 10mg, 5 vials"
+                                {...register('content')}
+                            />
+                            <Input
+                                label="Size"
+                                placeholder="e.g. 2ml, 5mg/vial"
+                                {...register('size')}
+                            />
+                            <Input
+                                label="Form"
+                                placeholder="e.g. Lyophilized powder"
+                                {...register('form')}
+                            />
+                        </div>
+                        <div className="flex flex-col justify-center mt-6">
+                            <label className="flex items-center space-x-3 cursor-pointer">
+                                <input
+                                    type="checkbox"
+                                    {...register('soldout_status')}
+                                    className="w-5 h-5 text-primary border-gray-300 rounded focus:ring-primary"
+                                />
+                                <span className="text-sm font-bold text-gray-700">Mark as Sold Out</span>
+                            </label>
                         </div>
                     </div>
                 </div>
@@ -218,25 +276,44 @@ export default function ProductForm({ initialData, isEdit = false }: ProductForm
                 {/* Sidebar */}
                 <div className="lg:col-span-1 space-y-6">
                     <div className="bg-white p-6 rounded-lg shadow-sm border border-gray-100">
-                        <h2 className="text-xl font-bold mb-6">Product Image</h2>
+                        <h2 className="text-xl font-bold mb-6">Product Images</h2>
 
-                        <div className="mb-4">
-                            {previewUrl ? (
-                                <div className="relative w-full aspect-square rounded-lg overflow-hidden border">
-                                    <Image src={previewUrl} alt="Preview" fill className="object-contain" />
-                                </div>
-                            ) : (
-                                <div className="w-full aspect-square bg-gray-100 rounded-lg flex items-center justify-center border-2 border-dashed border-gray-300">
-                                    <span className="text-gray-400">No image selected</span>
-                                </div>
-                            )}
-                        </div>
+                        {/* Image Previews Grid */}
+                        {previewUrls.length > 0 ? (
+                            <div className="grid grid-cols-2 gap-3 mb-4">
+                                {previewUrls.map((url, index) => (
+                                    <div key={index} className="relative aspect-square rounded-lg overflow-hidden border group">
+                                        <Image src={url} alt={`Preview ${index + 1}`} fill className="object-cover" />
+                                        <button
+                                            type="button"
+                                            onClick={() => removePreviewImage(index)}
+                                            className="absolute top-2 right-2 bg-red-500 text-white p-1.5 rounded-full opacity-0 group-hover:opacity-100 transition-opacity hover:bg-red-600"
+                                            aria-label="Remove image"
+                                        >
+                                            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                                            </svg>
+                                        </button>
+                                        {index === 0 && (
+                                            <div className="absolute bottom-2 left-2 bg-primary text-white px-2 py-1 rounded text-xs font-bold">
+                                                Main
+                                            </div>
+                                        )}
+                                    </div>
+                                ))}
+                            </div>
+                        ) : (
+                            <div className="w-full aspect-square bg-gray-100 rounded-lg flex items-center justify-center border-2 border-dashed border-gray-300 mb-4">
+                                <span className="text-gray-400">No images selected</span>
+                            </div>
+                        )}
 
                         <label className="block">
-                            <span className="sr-only">Choose file</span>
+                            <span className="sr-only">Choose files</span>
                             <input
                                 type="file"
                                 accept="image/*"
+                                multiple
                                 onChange={handleImageChange}
                                 className="block w-full text-sm text-gray-500
                   file:mr-4 file:py-2 file:px-4
@@ -247,6 +324,7 @@ export default function ProductForm({ initialData, isEdit = false }: ProductForm
                 "
                             />
                         </label>
+                        <p className="text-xs text-gray-500 mt-2">You can select multiple images. The first image will be the main product image.</p>
                     </div>
 
                     <div className="bg-white p-6 rounded-lg shadow-sm border border-gray-100">

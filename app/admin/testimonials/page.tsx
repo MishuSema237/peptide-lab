@@ -56,52 +56,55 @@ export default function AdminTestimonialsPage() {
 
     return (
         <div>
-            <div className="flex justify-between items-center mb-6">
+            <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 mb-6">
                 <h1 className="text-2xl font-bold text-dark">Testimonial Management</h1>
                 <Button onClick={() => { setEditItem(null); setFormData({ name: '', rating: 5, message: '', active: true }); setIsModalOpen(true); }}>
-                    Add New Testimonial
+                    <span className="hidden sm:inline">Add New Testimonial</span>
+                    <span className="sm:hidden">Add Testimonial</span>
                 </Button>
             </div>
 
             <div className="bg-white rounded-lg shadow-sm border border-gray-100 overflow-hidden">
-                <table className="w-full">
-                    <thead className="bg-gray-50 border-b">
-                        <tr>
-                            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Customer</th>
-                            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Rating</th>
-                            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Message</th>
-                            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
-                            <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
-                        </tr>
-                    </thead>
-                    <tbody className="divide-y divide-gray-200">
-                        {loading ? (
-                            <tr><td colSpan={5} className="px-6 py-4 text-center">Loading...</td></tr>
-                        ) : testimonials.length > 0 ? (
-                            testimonials.map((item: any) => (
-                                <tr key={item._id}>
-                                    <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">{item.name}</td>
-                                    <td className="px-6 py-4 whitespace-nowrap text-sm text-yellow-500">
-                                        {'★'.repeat(Math.floor(item.rating))}
-                                        {item.rating % 1 !== 0 ? '½' : ''}
-                                    </td>
-                                    <td className="px-6 py-4 text-sm text-gray-500 max-w-xs truncate">{item.message}</td>
-                                    <td className="px-6 py-4 whitespace-nowrap">
-                                        <span className={`px-2 py-1 rounded-full text-xs font-bold ${item.active ? 'bg-green-100 text-green-700' : 'bg-gray-100 text-gray-700'}`}>
-                                            {item.active ? 'Active' : 'Inactive'}
-                                        </span>
-                                    </td>
-                                    <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
-                                        <button onClick={() => openEdit(item)} className="text-primary hover:text-primary-600 mr-4">Edit</button>
-                                        <button onClick={() => handleDelete(item._id)} className="text-error hover:text-red-700">Delete</button>
-                                    </td>
-                                </tr>
-                            ))
-                        ) : (
-                            <tr><td colSpan={5} className="px-6 py-4 text-center text-sm text-gray-500">No testimonials found.</td></tr>
-                        )}
-                    </tbody>
-                </table>
+                <div className="overflow-x-auto">
+                    <table className="w-full">
+                        <thead className="bg-gray-50 border-b">
+                            <tr>
+                                <th className="px-3 md:px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Customer</th>
+                                <th className="px-3 md:px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider hidden sm:table-cell">Rating</th>
+                                <th className="px-3 md:px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Message</th>
+                                <th className="px-3 md:px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider hidden md:table-cell">Status</th>
+                                <th className="px-3 md:px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody className="divide-y divide-gray-200">
+                            {loading ? (
+                                <tr><td colSpan={5} className="px-6 py-4 text-center">Loading...</td></tr>
+                            ) : testimonials.length > 0 ? (
+                                testimonials.map((item: any) => (
+                                    <tr key={item._id}>
+                                        <td className="px-3 md:px-6 py-3 md:py-4 whitespace-nowrap text-sm font-medium text-gray-900">{item.name}</td>
+                                        <td className="px-3 md:px-6 py-3 md:py-4 whitespace-nowrap text-sm text-yellow-500 hidden sm:table-cell">
+                                            {'★'.repeat(Math.floor(item.rating))}
+                                            {item.rating % 1 !== 0 ? '½' : ''}
+                                        </td>
+                                        <td className="px-3 md:px-6 py-3 md:py-4 text-sm text-gray-500 max-w-[150px] md:max-w-xs truncate">{item.message}</td>
+                                        <td className="px-3 md:px-6 py-3 md:py-4 whitespace-nowrap hidden md:table-cell">
+                                            <span className={`px-2 py-1 rounded-full text-xs font-bold ${item.active ? 'bg-green-100 text-green-700' : 'bg-gray-100 text-gray-700'}`}>
+                                                {item.active ? 'Active' : 'Inactive'}
+                                            </span>
+                                        </td>
+                                        <td className="px-3 md:px-6 py-3 md:py-4 whitespace-nowrap text-right text-sm font-medium">
+                                            <button onClick={() => openEdit(item)} className="text-primary hover:text-primary-600 mr-4">Edit</button>
+                                            <button onClick={() => handleDelete(item._id)} className="text-error hover:text-red-700">Delete</button>
+                                        </td>
+                                    </tr>
+                                ))
+                            ) : (
+                                <tr><td colSpan={5} className="px-6 py-4 text-center text-sm text-gray-500">No testimonials found.</td></tr>
+                            )}
+                        </tbody>
+                    </table>
+                </div>
             </div>
 
             {isModalOpen && (

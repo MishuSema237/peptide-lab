@@ -34,6 +34,9 @@ const ProductSchema = new mongoose.Schema({
         type: String,
     },
     purity: String,
+    content: String,      // e.g., "10mg", "5 vials"
+    size: String,         // e.g., "2ml", "5mg/vial"
+    form: String,         // e.g., "Lyophilized powder", "Injectable solution"
     soldout_status: {
         type: Boolean,
         default: false,

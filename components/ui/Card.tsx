@@ -14,9 +14,12 @@ interface ProductCardProps {
     inStock: boolean;
     purity?: string;
     sku?: string;
+    content?: string;
+    size?: string;
+    form?: string;
 }
 
-export default function ProductCard({ id, name, price, image, category, inStock, purity, sku }: ProductCardProps) {
+export default function ProductCard({ id, name, price, image, category, inStock, purity, sku, content, size, form }: ProductCardProps) {
 
     return (
         <div className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden group transition-all hover:shadow-xl hover:-translate-y-1 flex flex-col h-full">
@@ -48,19 +51,31 @@ export default function ProductCard({ id, name, price, image, category, inStock,
                     <h3 className="text-lg font-heading font-bold text-dark line-clamp-2 leading-tight group-hover:text-primary transition-colors">
                         {name}
                     </h3>
-                    <div className="flex items-center gap-3 mt-2">
+                    <div className="flex flex-wrap items-center gap-2 mt-2">
                         {purity && (
-                            <span className="text-[10px] font-bold text-gray-400 uppercase tracking-wider">{purity} Purity</span>
+                            <span className="text-xs font-bold text-gray-600 bg-gray-100 px-2 py-1 rounded">
+                                {purity}%
+                            </span>
                         )}
-                        {sku && (
-                            <span className="text-[10px] font-bold text-gray-400 uppercase tracking-wider">SKU: {sku}</span>
+                        {content && (
+                            <span className="text-xs font-medium text-gray-600">
+                                {content}
+                            </span>
+                        )}
+                        {size && (
+                            <span className="text-xs font-medium text-gray-600">
+                                • {size}
+                            </span>
                         )}
                     </div>
+                    {sku && (
+                        <p className="text-[10px] font-bold text-gray-400 uppercase tracking-wider mt-1">SKU: {sku}</p>
+                    )}
                 </div>
 
                 <div className="mt-auto flex items-center justify-between gap-4">
                     <span className="text-2xl font-bold text-primary">${price.toFixed(2)}</span>
-{inStock ? (
+                    {inStock ? (
                         <Link href={`/products/${id}`}>
                             <Button
                                 size="sm"
