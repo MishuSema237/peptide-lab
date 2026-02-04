@@ -32,8 +32,8 @@ export default function CartPage() {
                 {/* Cart Items List */}
                 <div className="lg:col-span-2 space-y-6">
                     {items.map((item) => (
-                        <div key={item.id} className="flex gap-6 p-4 bg-white rounded-lg shadow-sm border border-gray-100">
-                            <div className="relative w-24 h-24 flex-shrink-0 bg-gray-50 rounded-md">
+                        <div key={item.id} className="flex flex-col sm:flex-row gap-4 p-4 bg-white rounded-lg shadow-sm border border-gray-100">
+                            <div className="relative w-20 h-20 sm:w-24 sm:h-24 flex-shrink-0 bg-gray-50 rounded-md mx-auto sm:mx-0">
                                 <Image
                                     src={item.image}
                                     alt={item.name}
@@ -42,17 +42,17 @@ export default function CartPage() {
                                 />
                             </div>
 
-                            <div className="flex-1 flex flex-col justify-between">
-                                <div className="flex justify-between">
-                                    <div>
-                                        <h3 className="font-bold text-dark">{item.name}</h3>
+                            <div className="flex-1 flex flex-col gap-3">
+                                <div className="flex justify-between items-start gap-2">
+                                    <div className="flex-1 min-w-0">
+                                        <h3 className="font-bold text-dark text-sm sm:text-base truncate">{item.name}</h3>
                                         {item.category && (
-                                            <p className="text-sm text-gray-500">{item.category}</p>
+                                            <p className="text-xs sm:text-sm text-gray-500">{item.category}</p>
                                         )}
                                     </div>
                                     <button
                                         onClick={() => removeItem(item.id)}
-                                        className="text-gray-400 hover:text-error transition-colors"
+                                        className="text-gray-400 hover:text-error transition-colors flex-shrink-0"
                                     >
                                         <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
@@ -60,26 +60,26 @@ export default function CartPage() {
                                     </button>
                                 </div>
 
-                                <div className="flex justify-between items-end">
+                                <div className="flex flex-col sm:flex-row justify-between items-start sm:items-end gap-3">
                                     <div className="flex items-center border rounded-md">
                                         <button
                                             onClick={() => updateQuantity(item.id, item.quantity - 1)}
-                                            className="px-3 py-1 hover:bg-gray-100 text-gray-600"
+                                            className="px-3 py-1 hover:bg-gray-100 text-gray-600 text-lg"
                                             disabled={item.quantity <= 1}
                                         >
                                             -
                                         </button>
-                                        <span className="px-3 py-1 font-medium text-dark min-w-[2.5rem] text-center">
+                                        <span className="px-4 py-1 font-medium text-dark min-w-[3rem] text-center">
                                             {item.quantity}
                                         </span>
                                         <button
                                             onClick={() => updateQuantity(item.id, item.quantity + 1)}
-                                            className="px-3 py-1 hover:bg-gray-100 text-gray-600"
+                                            className="px-3 py-1 hover:bg-gray-100 text-gray-600 text-lg"
                                         >
                                             +
                                         </button>
                                     </div>
-                                    <p className="font-bold text-primary">
+                                    <p className="font-bold text-primary text-lg">
                                         ${(item.price * item.quantity).toFixed(2)}
                                     </p>
                                 </div>
