@@ -73,11 +73,6 @@ export default function Footer() {
                                     Track Order
                                 </Link>
                             </li>
-                            <li>
-                                <Link href="/admin-login" className="text-gray-300 hover:text-accent transition-colors">
-                                    Admin Login
-                                </Link>
-                            </li>
                         </ul>
                     </div>
 
