@@ -40,7 +40,7 @@ export default function ShopPage() {
     }, []);
 
     const priceLimit = maxPrice === '' ? Infinity : parseFloat(maxPrice);
-    let filteredProducts = products.filter((p: any) =>
+    let filteredProducts: any[] = products.filter((p: any) =>
         p.price <= priceLimit &&
         (selectedCategory === 'All' || p.category === selectedCategory)
     );
